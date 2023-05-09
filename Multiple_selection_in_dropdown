@@ -1,0 +1,63 @@
+function setCheckboxDropdown(range) {
+  if (!range) {
+    range = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Overview').getRange('C2:C1000');
+  }
+  var values = range.getValues().flat().filter(String);
+  var html = HtmlService.createHtmlOutput();
+  var id = range.getA1Notation().replace(/:/g, '');
+  var inputName = range.getSheet().getName() + '_' + id;
+  html.append('<input type="text" id="' + id + '-input" onclick="showOptions(\'' + id + '\')" onblur="hideOptions(\'' + id + '\')" onkeyup="filterOptions(\'' + id + '\', this.value)" placeholder="Select options...">');
+  html.append('<div id="' + id + '-options" style="display:none;position:absolute;border:1px solid #ccc;background-color:white;z-index:9999;padding:5px;">');
+  for (var i = 0; i < values.length; i++) {
+    var value = values[i];
+    html.append('<label><input type="checkbox" name="' + inputName + '" value="' + value + '"> ' + value + '</label><br>');
+  }
+  html.append('</div>');
+  var rule = SpreadsheetApp.newDataValidation().requireCheckbox().setAllowInvalid(false).build();
+  range.setDataValidation(rule);
+  range.setNote('This cell contains a checkbox dropdown list. Do not manually edit the cell value.');
+  var ui = SpreadsheetApp.getUi();
+  ui.showModelessDialog(html, 'Select Options');
+}
+
+function showOptions(id) {
+  var template = HtmlService.createTemplateFromFile('template');
+  var output = template.evaluate();
+  var html = output.getContent();
+  var div = document.createElement('div');
+  div.innerHTML = html;
+  var options = div.querySelector('#' + id + '-options');
+  var input = div.querySelector('#' + id + '-input');
+  options.style.display = 'block';
+  input.value = '';
+  input.focus();
+}
+
+function hideOptions(id) {
+  $('#' + id + '-options').hide();
+}
+
+function filterOptions(id, value) {
+  var options = $('#' + id + '-options');
+  options.find('label').each(function() {
+    var label = $(this);
+    if (label.text().toLowerCase().indexOf(value.toLowerCase()) !== -1) {
+      label.show();
+    } else {
+      label.hide();
+    }
+  });
+}
+
+function onEdit(e) {
+  var range = e.range;
+  var sheet = range.getSheet();
+  var column = range.getColumn();
+  var row = range.getRow();
+  
+  if (sheet.getName() == "Overview" && column == 3 && row > 1) {
+    if (e.value != undefined || e.oldValue != undefined) { // Check if the edit is an actual value change
+      setCheckboxDropdown(range);
+    }
+  }
+}
