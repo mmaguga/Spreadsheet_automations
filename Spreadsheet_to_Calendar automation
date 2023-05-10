@@ -13,8 +13,8 @@ function exportEvents() {
     if (i < headerRows) continue; // Skip header row(s)
     var row = data[i];
     var title = row[0];
-    var time = row[6];
-    var description = row[1] + "\n" + row[2] + "\n" + row[4] + "\n" + row[8] + "\n" + row[9] + "\n" + row[10];;
+    var date = row[6];
+    var description = row[1] + "\n" + row[2] + "\n" + row[4] + "\n" + row[8] + "\n" + row[9] + "\n" + row[10];
     var eventId = row[13];
 
     if (eventId) {
@@ -24,7 +24,7 @@ function exportEvents() {
         if (event && title) { // Check if title exists
           event.setTitle(title);
           event.setDescription(description);
-          event.setTime(new Date(time));
+          event.setAllDayDate(new Date(date)); // Update the date of the event
           continue; // Skip creating a new event
         }
       } catch (e) {
@@ -32,7 +32,7 @@ function exportEvents() {
       }
     } else if (title) { // Check if title exists
       // Create a new all-day event
-      var newEvent = cal.createAllDayEvent(title, new Date(time), { description: description });
+      var newEvent = cal.createAllDayEvent(title, new Date(date), { description: description });
       row[13] = newEvent.getId(); // Update the data array with event ID
     }
   }
@@ -40,9 +40,6 @@ function exportEvents() {
   // Record all event IDs to the spreadsheet
   range.setValues(data);
 }
-
-
-
 
 /**
  * Adds a custom menu to the active spreadsheet, containing a single menu item
