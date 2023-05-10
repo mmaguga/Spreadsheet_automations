@@ -1,0 +1,58 @@
+function exportEvents() {
+  var sheet = SpreadsheetApp.getActiveSheet();
+  var headerRows = 1; // Number of rows of header info (to skip)
+  var range = sheet.getDataRange();
+  var data = range.getValues();
+  var calId = "c_classroomcc580eea@group.calendar.google.com";
+  var cal = CalendarApp.getCalendarById(calId);
+
+  Logger.log("calId: " + calId);
+  Logger.log("cal: " + cal);
+
+  for (var i = 0; i < data.length; i++) {
+    if (i < headerRows) continue; // Skip header row(s)
+    var row = data[i];
+    var title = row[0];
+    var time = row[6];
+    var description = row[1] + "\n" + row[2] + "\n" + row[4] + "\n" + row[8] + "\n" + row[9] + "\n" + row[10];;
+    var eventId = row[13];
+
+    if (eventId) {
+      // Update existing event
+      try {
+        var event = cal.getEventSeriesById(eventId);
+        if (event && title) { // Check if title exists
+          event.setTitle(title);
+          event.setDescription(description);
+          event.setTime(new Date(time));
+          continue; // Skip creating a new event
+        }
+      } catch (e) {
+        // Do nothing - we just want to avoid the exception when the event doesn't exist
+      }
+    } else if (title) { // Check if title exists
+      // Create a new all-day event
+      var newEvent = cal.createAllDayEvent(title, new Date(time), { description: description });
+      row[13] = newEvent.getId(); // Update the data array with event ID
+    }
+  }
+
+  // Record all event IDs to the spreadsheet
+  range.setValues(data);
+}
+
+
+
+
+/**
+ * Adds a custom menu to the active spreadsheet, containing a single menu item
+ * for invoking the exportEvents() function.
+ * The onOpen() function, when defined, is automatically invoked whenever the
+ * spreadsheet is opened.
+**/
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu('Sync to Calendar')
+    .addItem('Schedule launches now', 'exportEvents')
+    .addToUi();
+}
