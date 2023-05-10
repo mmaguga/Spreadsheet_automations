@@ -14,7 +14,7 @@ function exportEvents() {
     var row = data[i];
     var title = row[0];
     var date = row[6];
-    var description = row[1] + "\n" + row[2] + "\n" + row[4] + "\n" + row[8] + "\n" + row[9] + "\n" + row[10];
+    var description = "Category: " + row[1] + "\n" + "Impacted Regions: " + row[2] + "\n" +"Priority: " + row[4] + "\n" + "Description: "+ row[8] + "\n" + "Contact Person: "+ row[9] + "\n" + "Documents: " + row[10];
     var eventId = row[13];
 
     if (eventId) {
