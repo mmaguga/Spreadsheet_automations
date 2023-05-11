@@ -13,9 +13,9 @@ function exportEvents() {
     if (i < headerRows) continue; // Skip header row(s)
     var row = data[i];
     var title = row[0];
-    var date = row[6];
-    var description = "Category: " + row[1] + "\n" + "Impacted Regions: " + row[2] + "\n" +"Priority: " + row[4] + "\n" + "Description: "+ row[8] + "\n" + "Contact Person: "+ row[9] + "\n" + "Documents: " + row[10];
-    var eventId = row[13];
+    var date = row[5];
+    var description = "Category: " + row[1] + "\n" + "Impacted Market/s: " + row[2] + "\n" +"Priority: " + row[3] + "\n" + "Description: "+ row[7] + "\n" + "Contact Person: "+ row[8] + "\n" + "Documents: " + row[9];
+    var eventId = row[12];
 
     if (eventId) {
       // Update existing event
@@ -26,6 +26,9 @@ function exportEvents() {
           event.setDescription(description);
           event.setAllDayDate(new Date(date)); // Update the date of the event
           continue; // Skip creating a new event
+        } else {
+          // Event not found in Calendar, clear the event ID in the Spreadsheet
+          row[12] = "";
         }
       } catch (e) {
         // Do nothing - we just want to avoid the exception when the event doesn't exist
@@ -33,13 +36,14 @@ function exportEvents() {
     } else if (title) { // Check if title exists
       // Create a new all-day event
       var newEvent = cal.createAllDayEvent(title, new Date(date), { description: description });
-      row[13] = newEvent.getId(); // Update the data array with event ID
+      row[12] = newEvent.getId(); // Update the data array with event ID
     }
   }
 
   // Record all event IDs to the spreadsheet
   range.setValues(data);
 }
+
 
 /**
  * Adds a custom menu to the active spreadsheet, containing a single menu item
