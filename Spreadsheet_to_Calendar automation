@@ -12,9 +12,9 @@ function exportEvents() {
   for (var i = 0; i < data.length; i++) {
     if (i < headerRows) continue; // Skip header row(s)
     var row = data[i];
-    var title = row[0];
+    var title = row[1] + "\n" + row[0];
     var date = row[5];
-    var description = "Category: " + row[1] + "\n" + "Impacted Market/s: " + row[2] + "\n" +"Priority: " + row[3] + "\n" + "Description: "+ row[7] + "\n" + "Contact Person: "+ row[8] + "\n" + "Documents: " + row[9];
+    var description = "Impacted Market/s: " + row[2] + "\n" + "Impact to PO: " + row[3] + "\n" + "Description: " + row[7] + "\n" + "Contact Person: " + row[8] + "\n" + "Documents: " + row[9];
     var eventId = row[12];
 
     if (eventId) {
@@ -38,19 +38,20 @@ function exportEvents() {
       var newEvent = cal.createAllDayEvent(title, new Date(date), { description: description });
       row[12] = newEvent.getId(); // Update the data array with event ID
     }
+
+    // Record all event IDs to the spreadsheet
+    data[i][12] = row[12]; // Update the eventId in the data array
   }
 
-  // Record all event IDs to the spreadsheet
   range.setValues(data);
 }
-
 
 /**
  * Adds a custom menu to the active spreadsheet, containing a single menu item
  * for invoking the exportEvents() function.
  * The onOpen() function, when defined, is automatically invoked whenever the
  * spreadsheet is opened.
-**/
+ **/
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
   ui.createMenu('Sync to Calendar')
