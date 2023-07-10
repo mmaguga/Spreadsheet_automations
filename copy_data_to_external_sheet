@@ -1,0 +1,60 @@
+function copyRowsToExternalSheet() {
+  // source sheet (Spreadsheet 1)
+  var source = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  
+  // Fetch the title row
+  var headerRow = source.getRange(1, 1, 1, source.getLastColumn()).getValues();
+  
+  // Fetch the rest of data excluding the title row
+  var sourceData = source.getRange(2, 1, source.getLastRow() - 1, source.getLastColumn()).getValues();
+
+  // define the criteria for rows to be copied
+  var criteria = ['Klarnawiki system improvement', 'Klarnawiki design improvement', 'Klarnawiki Bug or error', 'Klarnawiki Page or routine improvement', 'Negative feedback', 'general complaint'];
+  
+  // filter the source data on the criteria in column J (index 9 due to 0-indexing)
+  var filteredData = sourceData.filter(function(row) {
+    return criteria.indexOf(row[9]) !== -1;
+  });
+
+  // if there is no data after filtering, exit the function
+  if (filteredData.length == 0) return;
+
+  // target spreadsheet (Spreadsheet 2) - replace with Spreadsheet 2's ID
+  var target = SpreadsheetApp.openById('SPREADSHEET_ID');
+  
+  // specify the name of the tab in Spreadsheet 2
+  var targetSheetName = 'TAB_NAME'; 
+
+  var targetSheet = target.getSheetByName(targetSheetName);
+
+  // if the sheet does not exist in Spreadsheet 2, create one
+  if (!targetSheet) {
+    targetSheet = target.insertSheet(targetSheetName);
+    targetSheet.getRange(1, 1, 1, filteredData[0].length).setValues([headerRow[0]]);
+  }
+
+  // Get existing data in target sheet
+  var existingData = targetSheet.getDataRange().getValues();
+
+  // Get the last row number with data in the target sheet
+  var lastRow = targetSheet.getLastRow();
+
+  // Remove the title row from existing data
+  var existingDataWithoutHeader = existingData.slice(1);
+
+  // Filter the existing data based on criteria
+  var filteredExistingData = existingDataWithoutHeader.filter(function(row) {
+    return criteria.indexOf(row[9]) !== -1;
+  });
+
+  // Combine the filtered existing data and new filtered data
+  var combinedData = filteredExistingData.concat(filteredData);
+
+  // Clear the existing data in the target sheet
+  if (lastRow > 1) {
+  targetSheet.getRange(2, 1, lastRow - 1, filteredData[0].length).clearContent();
+  }
+
+  // Write the combined data to the target sheet
+  targetSheet.getRange(2, 1, combinedData.length, combinedData[0].length).setValues(combinedData);
+}
