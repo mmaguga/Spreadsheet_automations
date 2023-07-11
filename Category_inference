@@ -1,16 +1,16 @@
 // Function to retrieve the OpenAI API key from a separate spreadsheet
 function getOpenAIKey() {
-  var apiKeySpreadsheet = SpreadsheetApp.openById('YOUR_SPREADSHEET_ID');
+  var apiKeySpreadsheet = SpreadsheetApp.openById('API_KEY_SHEET_ID');
   var apiKeySheet = apiKeySpreadsheet.getSheetByName('TAB_NAME');
-  var apiKey = apiKeySheet.getRange('RANGE_WHERE_KEY_IS_LOCATED').getValue();
+  var apiKey = apiKeySheet.getRange('A1').getValue();
   return apiKey;
 }
 
 // Perform text inference for each row
 function performTextInferenceForEachRow() {
-  var mainSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('TAB_NAME_SPREADSHEET_1');
+  var mainSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Sheet1');
   var lastRow = mainSheet.getLastRow();
-  var range = mainSheet.getRange("C2:D" + lastRow);
+  var range = mainSheet.getRange("B2:D" + lastRow);
   var values = range.getValues();
 
   var apiKey = getOpenAIKey();
@@ -22,15 +22,16 @@ function performTextInferenceForEachRow() {
   };
 
   for (var i = 0; i < values.length; i++) {
-    var firstAssistantResponse = values[i][0];  // Located in column C
-    var userFeedback = values[i][1];  // Located in column D
+    var firstUserQuestion = values[i][0]; // Located in column B
+    var firstAssistantResponse = values[i][1]; // Located in column C
+    var userFeedback = values[i][2]; // Located in column D
     if (userFeedback.trim() !== "") {
 
       // Defining the 'messages' array for conversations
       var messages = [
         {
           "role": "system",
-          "content": "You are going to be provided with a chatbot response " + firstAssistantResponse + "; and the subsequent free-text feedback submitted by the users " + userFeedback + " that are interacting with the chatbot. This chatbot lives within our internal multifunctioning documentation tool called 'Klarnawiki', a mediawiki based software. Your task is to:\n1. Analyse first the chatbot response " + firstAssistantResponse + ", then\n2. Analyse the user free-text feedback " + userFeedback + ", and lastly,\n3. Infer/provide with the category of the feedback.\n\nRemember that in order to correctly infer or decide which feedback category is the correct, you will need to first look at what was the " + firstAssistantResponse + "; then look at the " + userFeedback + ", and lastly infer/provide with the feedback category. The feedback categories you will choose from, are the following:\n- 'Positive feedback',\n- 'Negative feedback',\n- 'Klarnawiki system improvement',\n- 'Klarnawiki design improvement',\n- 'Klarnawiki Bug or error',\n- 'general complaint',\n- 'Klarnawiki Page or routine improvement',\n- 'Chatbot bug or error',\n- 'Testing purposes',\n- 'Chatbot design improvement',\n- 'Chatbot information retrieval'.\n\nBelow some tips and examples to help you infer the feeback category:\n- If you don't know the category, then use 'unknown' as the key.\n- If the " + userFeedback + " free-text contains references to 'test', 'testing', or 'stress test', you can infer that the user is testing the functionality of the chatbot. In this case, you can use 'Testing purposes' as the key.\n- If the " + userFeedback + " free-text mentions the 'chatbot' or the 'bot', then you can infer that the feedback is likely towards the chatbot.\n- If the " + userFeedback + " free-text contains references to a 'routine', 'page', or 'wiki', then you can infer that the feedback is likely towards Klarnawiki.\n- If the " + userFeedback + " contains 'null', then the Feedback_category should be 'Unknown'. REMEMBER to format your response/output as the feedback category itself, without any key or title or long text, but ONLY the infered feedback category. The feedback categories you will use are already provided in this prompt"
+          "content": "Your task is to:\n1. Analyse the " + firstUserQuestion + ", which corresponds to a user prompt, and the subsequent chatbot response " + firstAssistantResponse + ", then;\n2. Analyse the user free-text feedback " + userFeedback + " on the interaction, and lastly;\n3. You will provide with the category of the feedback.\n\n The feedback categories you will choose from, are the following:\n- 'Klarnawiki Design improvement',\n- 'Klarnawiki technical issue',\n- 'Positive feedback',\n- 'Klarnawiki content improvement',\n- 'Chatbot retrieval or functioning'.\n\nBelow some tips and examples to help you infer the feeback category:\n- If you don't know the category, then use 'unknown' as the key.\n- If the " + userFeedback + " free-text contains references to 'test', 'testing', or 'stress test', you can use 'Testing purposes' as the key.\n- If the " + userFeedback + " mentions the 'chatbot', 'bot', or related to the chatbot output (For exampple: 'the bot seems to not read tables', 'Good answer', 'I didn't get what I asked for!', or 'it doesn't read tables'), then you can infer that the feedback is likely 'Chatbot retrieval or functioning'.\n- If the " + userFeedback + " contains references to the design of Klarnawiki, or the layout, then you will know the category is 'Klarnawiki Design improvement'.\n- If the " + userFeedback + " contains references to the content of a page not being correct, or page inconsistencies. then the category should be 'Klarnawiki content improvement'\n- If the " + userFeedback + " contains references to Klarnawiki  not working, formating errors, or page loading times, then you will know the category is 'Klarnawiki technical issue'. \n- If the " + userFeedback + " contains 'null', then the Feedback_category should be 'Unknown'. REMEMBER to format your response/output as the feedback category itself, without any key or title or long text, but ONLY the infered feedback category. The feedback categories you will use are already provided in this prompt"
         },
         {
           "role": "assistant",
@@ -74,4 +75,3 @@ function onOpen() {
     .addItem('Perform Inference', 'performTextInferenceForEachRow')
     .addToUi();
 }
-
