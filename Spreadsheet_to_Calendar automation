@@ -1,26 +1,31 @@
+/**
+ * whenver you update the columns please modify the number inside [] 
+ */
 function exportEvents() {
-  var sheet = SpreadsheetApp.getActiveSheet();
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Overview");
   var headerRows = 1; // Number of rows of header info (to skip)
   var range = sheet.getDataRange();
   var data = range.getValues();
   var calId = "c_classroomcc580eea@group.calendar.google.com";
   var cal = CalendarApp.getCalendarById(calId);
-
+  debugger;
   Logger.log("calId: " + calId);
   Logger.log("cal: " + cal);
 
   for (var i = 0; i < data.length; i++) {
     if (i < headerRows) continue; // Skip header row(s)
     var row = data[i];
-    var title = row[1] + "\n" + row[0];
-    var date = row[5];
-    var description = "Impacted Market/s: " + row[2] + "\n" + "Impact to PO: " + row[3] + "\n" + "Description: " + row[7] + "\n" + "Contact Person: " + row[8] + "\n" + "Documents: " + row[9];
-    var eventId = row[12];
-
+    var title = row[1] + ":" + "\n" + row[0];
+    Logger.log(title)
+    var date = row[6];
+    var description = "Impacted Market/s: " + row[2] + "\n" + "Description: " + row[8] + "\n" + "Contact Person: " + row[9] + "\n" + "Documents: " + row[10] + "\n" + "PO Launch tracker: https://docs.google.com/spreadsheets/d/1wmzcXEGGPm2ZPyYccwPOMitVgpK6K78JZT3xkkww3XE/edit#gid=0 ";
+    var eventId = row[14];
+    debugger;
     if (eventId) {
       // Update existing event
       try {
-        var event = cal.getEventSeriesById(eventId);
+        var event = cal.getEventById(eventId);
+        Logger.log(event);
         if (event && title) { // Check if title exists
           event.setTitle(title);
           event.setDescription(description);
@@ -28,23 +33,38 @@ function exportEvents() {
           continue; // Skip creating a new event
         } else {
           // Event not found in Calendar, clear the event ID in the Spreadsheet
-          row[12] = "";
+          row[14] = "";
         }
       } catch (e) {
         // Do nothing - we just want to avoid the exception when the event doesn't exist
       }
-    } else if (title) { // Check if title exists
-      // Create a new all-day event
-      var newEvent = cal.createAllDayEvent(title, new Date(date), { description: description });
-      row[12] = newEvent.getId(); // Update the data array with event ID
+    } 
+    else if (date) { // Check if date exists
+    // Create a new all-day event
+    var newEvent = cal.createAllDayEvent(title, new Date(date), {description: description});
+    debugger;
+    row[14] = newEvent.getId(); // Update the data array with event ID
+    debugger;
     }
-
     // Record all event IDs to the spreadsheet
-    data[i][12] = row[12]; // Update the eventId in the data array
+    data[i][14] = row[14]; // Update the eventId in the data array
   }
 
   range.setValues(data);
 }
+
+// function appendRowWithData(data) {
+//   var sheet = SpreadsheetApp.getActiveSheet();
+//   var range = sheet.getRange(sheet.getLastRow() + 1, 1, 1, data.length);
+//   range.setValues([data]);
+// }
+
+// function onEdit(e) {
+//   var lastRow = e.source.getActiveSheet().getLastRow();
+//   if (e.range.rowStart === lastRow && e.range.columnStart === 1 && e.value) {
+//     appendRowWithData(e.source.getActiveSheet().getRange(lastRow, 1, 1, e.source.getActiveSheet().getLastColumn()).getValues()[0]);
+//   }
+// }
 
 /**
  * Adds a custom menu to the active spreadsheet, containing a single menu item
@@ -55,6 +75,6 @@ function exportEvents() {
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
   ui.createMenu('Sync to Calendar')
-    .addItem('Schedule launches now', 'exportEvents')
-    .addToUi();
+      .addItem('Schedule launches now', 'exportEvents')
+      .addToUi();
 }
